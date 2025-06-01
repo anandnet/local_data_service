@@ -65,18 +65,20 @@ class LocalDataService {
   /// this will emit a new [List<int>] object whenever a new raw message/data is received
   Stream<List<int>> get rawMessageStream => _rawMessageStreamController.stream;
 
+  /// checks if data service is running
+  bool get isRunning => _running;
+
   /// checks if data service is connected to any data client/data server
   bool get isConnected => _connectedClient != null;
 
-  /// checks if data service is connected as a data server
-  /// this will be true if data server is running and connected to a client
-  bool get connectedAsDataServer =>
-      isConnected && (_dataServer?.isConnectedToClient ?? false);
-
-  /// checks if data service is connected as a data client
-  /// this will be true if data client is connected to a data server
-  bool get connectedAsDataClient =>
-      isConnected && (_dataClient?.connected ?? false);
+  /// returns whether this LocalDataServiceClient is acting as a data client or data server
+  /// when connected to other LocalDataServiceClient and returns null if not connected to any client
+  LocalDataServiceClientActingAs? get thisClientActingAs =>
+      (_dataClient?.connected ?? false)
+          ? LocalDataServiceClientActingAs.client
+          : _dataServer?.isConnectedToClient ?? false
+              ? LocalDataServiceClientActingAs.server
+              : null;
 
   /// returns the connected client if any
   /// this will be null if not connected to any client
@@ -87,7 +89,7 @@ class LocalDataService {
       _localDataServiceClients;
 
   /// requires a serviceId
-
+  ///
   /// length of `serviceId`, should be less than or equal to 15 chars. if serviceId length is greater than 15, it will be truncated to 15 chars
   ///
   /// Example: `awesomeservice` or `awesome-service`
@@ -181,7 +183,7 @@ class LocalDataService {
 
   /// starts broadcasting the service
   /// this will create a bonsoir broadcast and start it
-  /// 
+  ///
   /// throws [LocalDataServiceNotRunningException] if the service is not running
   Future<void> startBroadcast() async {
     if (!_running) {
@@ -198,7 +200,7 @@ class LocalDataService {
 
   /// starts discovery of local data services
   /// this will create a bonsoir discovery and start it
-  /// 
+  ///
   /// throws [LocalDataServiceNotRunningException] if the service is not running
   Future<void> startDiscovery() async {
     if (!_running) {
@@ -237,9 +239,10 @@ class LocalDataService {
 
         /// connect data client with data server, this will take host, port and onErrorOrDone
         await _dataClient!.connect(
-            _connectedClient!.host, _connectedClient!.port, 
-          /// onErrorOrDone will be called when connection is closed or error occurs
-          onErrorOrDone: () {
+            _connectedClient!.host, _connectedClient!.port,
+
+            /// onErrorOrDone will be called when connection is closed or error occurs
+            onErrorOrDone: () {
           _connectedClient = null;
           _discoveredClients.add(Discoveredclients(
               allDiscoveredClients: _localDataServiceClients.toList()));
@@ -319,7 +322,7 @@ class LocalDataService {
   }
 
   /// sends a message to the connected LocalDataService client
-  /// 
+  ///
   /// if the service is not running, it will throw [LocalDataServiceNotRunningException]
   void sendMessage(String message) {
     if (!_running) {
@@ -334,7 +337,7 @@ class LocalDataService {
   }
 
   /// sends a raw message as `List<int>` to the connected LocalDataService client
-  /// 
+  ///
   /// if the service is not running, it will throw [LocalDataServiceNotRunningException]
   void sendRawMessage(List<int> rawMessage) {
     if (!_running) {
@@ -349,7 +352,7 @@ class LocalDataService {
   }
 
   /// sends data as a stream to the connected LocalDataService client
-  /// 
+  ///
   /// if the service is not running, it will throw [LocalDataServiceNotRunningException]
   void sendDataAsStream(Stream<List<int>> dataStream) {
     if (!_running) {
@@ -412,4 +415,11 @@ class LocalDataService {
     await _discoveredClients.close();
     await _rawMessageStreamController.close();
   }
+}
+
+
+/// Enum to represent whether the LocalDataServiceClient is acting as a client or server.
+enum LocalDataServiceClientActingAs {
+  client,
+  server,
 }
