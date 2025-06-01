@@ -68,7 +68,7 @@ class _MyHomePageState extends State<MyHomePage> {
   final TextEditingController _textEditingController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   String? _connectedClientName;
-  final LocalDataService _localDataService = LocalDataService();
+  final LocalDataService _localDataService = LocalDataService(serviceId: "awesome-service");
 
   void _listenForMessages() {
     _localDataService.rawMessageStream.listen((data) {
@@ -105,7 +105,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   void initState() {
-    _localDataService.init(serviceId: "awesome-service");
+    _localDataService.init();
     _listenForMessages();
     super.initState();
   }
@@ -264,25 +264,25 @@ class _MyHomePageState extends State<MyHomePage> {
           ],
         ),
       ),
-      // floatingActionButton: Column(
-      //   mainAxisAlignment: MainAxisAlignment.end,
-      //   children: [
-      //     FloatingActionButton.extended(
-      //       onPressed: () {
-      //         _localDataService.sendMessage("Hello");
-      //       },
-      //       tooltip: 'broadcast',
-      //       icon: const Icon(Icons.start),
-      //       label: const Text("Start Broadcast"),
-      //     ),
-      //     FloatingActionButton.extended(
-      //       onPressed: _localDataService.close,
-      //       tooltip: 'close local data service',
-      //       icon: const Icon(Icons.close),
-      //       label: const Text("Close LAC"),
-      //     ),
-      //   ],
-      // ), // This trailing comma makes auto-formatting nicer for build methods.
+      floatingActionButton: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          FloatingActionButton.extended(
+            onPressed: () {
+              _localDataService.init();
+            },
+            tooltip: 'broadcast',
+            icon: const Icon(Icons.start),
+            label: const Text("Start Broadcast"),
+          ),
+          FloatingActionButton.extended(
+            onPressed: _localDataService.close,
+            tooltip: 'stop boadcast',
+            icon: const Icon(Icons.close),
+            label: const Text("stop broadcast"),
+          ),
+        ],
+      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
